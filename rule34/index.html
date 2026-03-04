@@ -1,0 +1,859 @@
+<script src="https://cdnjs.cloudflare.com/ajax/libs/howler/2.2.4/howler.min.js"></script>
+<style>
+/* All styles scoped to .r34 — safe to paste inside any Moodle div */
+.r34 * { box-sizing: border-box; margin: 0; padding: 0; }
+.r34 {
+  font-family: 'Segoe UI', Arial, sans-serif;
+  background: #0d1b2e;
+  color: #e2e8f0;
+  border-radius: 12px;
+  overflow: hidden;
+  width: 100%;
+  max-width: 860px;
+  margin: 0 auto;
+  border: 1px solid rgba(255,255,255,0.08);
+}
+
+/* HEADER */
+.r34-header {
+  background: #071524;
+  border-bottom: 2px solid #1e90ff;
+  padding: 14px 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.r34-header h1 { font-size: 1.1rem; font-weight: 700; color: #fff; }
+.r34-header p  { font-size: 0.72rem; color: #5a7a9a; margin-top: 2px; }
+.r34-hicon { font-size: 1.8rem; flex-shrink: 0; }
+
+/* TABS */
+.r34-tabs {
+  display: flex;
+  background: #071524;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+.r34-tab {
+  padding: 10px 20px;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: #5a7a9a;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.r34-tab:hover { color: #c0d4ec; }
+.r34-tab.active { color: #1e90ff; border-bottom-color: #1e90ff; }
+
+/* PANELS */
+.r34-panel { display: none; }
+.r34-panel.active { display: block; }
+
+/* SIMULATOR */
+.r34-sim {
+  display: grid;
+  grid-template-columns: 230px 1fr;
+}
+@media (max-width: 580px) {
+  .r34-sim { grid-template-columns: 1fr; }
+}
+
+/* Signal sidebar */
+.r34-slist {
+  background: #071524;
+  border-right: 1px solid rgba(255,255,255,0.08);
+  padding: 10px;
+}
+.r34-sgroup {
+  font-size: 0.6rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: #3a6080;
+  padding: 10px 4px 5px;
+  border-top: 1px solid rgba(255,255,255,0.05);
+  margin-top: 4px;
+}
+.r34-sgroup:first-child { border-top: none; margin-top: 0; padding-top: 4px; }
+
+.r34-sbtn {
+  width: 100%;
+  background: #0d1b2e;
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 7px;
+  padding: 9px 11px;
+  cursor: pointer;
+  text-align: left;
+  color: #c8d8ec;
+  margin-bottom: 5px;
+  transition: border-color 0.15s, background 0.15s;
+}
+.r34-sbtn:hover  { border-color: #1e90ff; background: rgba(30,144,255,0.06); }
+.r34-sbtn.active { border-color: #1e90ff; background: rgba(30,144,255,0.12); }
+.r34-sbtn-name { font-size: 0.8rem; font-weight: 600; line-height: 1.3; }
+.r34-sbtn-code { font-size: 0.74rem; color: #1e90ff; margin-top: 3px; font-family: monospace; letter-spacing: 1px; }
+.r34-stag {
+  display: inline-block;
+  font-size: 0.57rem;
+  padding: 1px 5px;
+  border-radius: 3px;
+  margin-bottom: 4px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+.t-man  { background:rgba(30,144,255,.18); color:#5bb0ff; }
+.t-ovt  { background:rgba(16,185,129,.18); color:#4de0a8; }
+.t-warn { background:rgba(239,68,68,.18);  color:#ff8080; }
+.t-bend { background:rgba(245,158,11,.18); color:#ffc030; }
+
+/* Right display column */
+.r34-right { display: flex; flex-direction: column; }
+
+/* Scene */
+.r34-scene {
+  background: radial-gradient(ellipse at 50% 75%, #0a2040 0%, #050d1a 100%);
+  min-height: 190px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  position: relative;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  overflow: hidden;
+}
+.r34-scene::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0; right: 0; height: 45%;
+  background: repeating-linear-gradient(180deg, transparent, transparent 13px, rgba(30,144,255,0.025) 13px, rgba(30,144,255,0.025) 14px);
+  pointer-events: none;
+}
+.r34-idle {
+  text-align: center;
+  color: #2a4a6a;
+  font-size: 0.83rem;
+}
+.r34-idle span { font-size: 2.2rem; display: block; margin-bottom: 6px; }
+
+/* Ship component */
+.r34-sw {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 7px;
+  position: relative;
+  z-index: 1;
+}
+.r34-slabel { font-size: 0.6rem; letter-spacing: 2px; text-transform: uppercase; color: #3a6080; }
+.r34-ssvg {
+  width: 54px; height: 80px;
+  transition: transform 0.65s ease;
+  flex-shrink: 0;
+}
+.r34-ssvg.tr  { transform: rotate(15deg); }
+.r34-ssvg.tl  { transform: rotate(-15deg); }
+.r34-ssvg.rev { transform: translateY(9px); }
+
+/* Overtake / bend layouts */
+.r34-ot-row {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  flex-wrap: wrap;
+  justify-content: center;
+  position: relative;
+  z-index: 1;
+}
+.r34-ot-arrow {
+  font-size: 2rem; color: #10b981;
+  animation: r34sl 1.4s ease-in-out infinite;
+}
+@keyframes r34sl { 0%,100%{transform:translateX(-5px)} 50%{transform:translateX(5px)} }
+
+.r34-bend-row {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  position: relative;
+  z-index: 1;
+}
+.r34-wall {
+  width: 14px; height: 80px;
+  background: linear-gradient(180deg,#374151,#1f2937);
+  border-radius: 3px;
+  border: 1px solid #4b5563;
+  position: relative;
+}
+.r34-wall::before {
+  content: '🏔';
+  position: absolute;
+  top: -26px; left: 50%;
+  transform: translateX(-50%);
+  font-size: 1.2rem;
+}
+.r34-qmark {
+  font-size: 2.8rem; color: #f59e0b;
+  animation: r34pq 1s ease-in-out infinite;
+}
+@keyframes r34pq { 0%,100%{opacity:.55;transform:scale(1)} 50%{opacity:1;transform:scale(1.1)} }
+
+/* Danger badge */
+.r34-danger-badge {
+  position: absolute;
+  top: 10px; right: 12px;
+  background: rgba(239,68,68,.14);
+  border: 1px solid rgba(239,68,68,.4);
+  border-radius: 5px;
+  padding: 3px 9px;
+  font-size: 0.66rem;
+  color: #ff8080;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  z-index: 2;
+  animation: r34wf 0.75s ease-in-out infinite;
+}
+@keyframes r34wf { 0%,100%{opacity:.45} 50%{opacity:1} }
+
+/* Info area */
+.r34-info {
+  padding: 14px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background: #0a1628;
+}
+.r34-sigtitle { font-size: 0.97rem; font-weight: 700; color: #fff; min-height: 20px; }
+.r34-sigtitle.empty { color: #2a4a6a; font-weight: 400; font-style: italic; font-size: 0.83rem; }
+
+.r34-row-label { font-size: 0.62rem; letter-spacing: 2px; text-transform: uppercase; color: #3a6080; margin-bottom: 7px; }
+
+/* Blast pills */
+.r34-blasts { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; min-height: 36px; }
+.r34-bp {
+  height: 36px;
+  border-radius: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: monospace;
+  font-weight: 700;
+  border: 2px solid;
+  transition: transform 0.08s, box-shadow 0.08s;
+}
+.r34-bp.s  { width:36px;  font-size:.85rem; border-color:#1e90ff; color:#1e90ff; background:rgba(30,144,255,.1); }
+.r34-bp.p  { width:68px;  font-size:.62rem; border-color:#38bdf8; color:#38bdf8; background:rgba(56,189,248,.1); letter-spacing:1px; }
+.r34-bp.r  { width:28px;  height:28px; border-radius:4px; font-size:.85rem; border-color:#ef4444; color:#ef4444; background:rgba(239,68,68,.1); }
+.r34-bp.on { box-shadow:0 0 16px currentColor; transform:scale(1.15); }
+
+/* Flash dots */
+.r34-flashes { display:flex; align-items:center; gap:7px; flex-wrap:wrap; min-height:26px; }
+.r34-fd {
+  width:22px; height:22px; border-radius:50%;
+  background:#0d1b2e; border:2px solid #1a3050;
+  transition: background 0.06s, box-shadow 0.06s;
+}
+.r34-fd.on { background:#fff; border-color:#fff; box-shadow:0 0 14px #fff; }
+.r34-fnone { font-size:.74rem; color:#2a4a6a; font-style:italic; }
+
+/* Rule text */
+.r34-ruletext {
+  background: #071524;
+  border-left: 3px solid #1e90ff;
+  border-radius: 0 5px 5px 0;
+  padding: 9px 13px;
+  font-size: 0.77rem;
+  color: #607590;
+  line-height: 1.6;
+  min-height: 42px;
+}
+.r34-ruletext.empty { border-left-color: #0d2040; color: #2a4a6a; font-style: italic; }
+
+/* Play controls */
+.r34-playw { display:flex; align-items:center; gap:12px; }
+.r34-playbtn {
+  background: #1e90ff;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 9px 22px;
+  font-size: 0.84rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.r34-playbtn:hover:not(:disabled) { background: #3da0ff; }
+.r34-playbtn:disabled { background: #112030; color: #2a4a6a; cursor: not-allowed; }
+.r34-playbtn.playing { background: #10b981; }
+.r34-playstatus { font-size: 0.7rem; color: #3a6080; letter-spacing: 1px; text-transform: uppercase; }
+
+/* Footer bar */
+.r34-foot {
+  display: grid;
+  grid-template-columns: repeat(3,1fr);
+  background: #071524;
+  border-top: 1px solid rgba(255,255,255,0.05);
+}
+.r34-fc {
+  padding: 9px 13px;
+  border-right: 1px solid rgba(255,255,255,0.05);
+}
+.r34-fc:last-child { border-right: none; }
+.r34-flbl { font-size: 0.58rem; letter-spacing: 2px; text-transform: uppercase; color: #3a6080; margin-bottom: 3px; }
+.r34-fval { font-size: 0.78rem; font-weight: 600; color: #1e90ff; }
+
+/* REFERENCE */
+.r34-ref { padding: 18px 20px; }
+.r34-rg { margin-bottom: 20px; }
+.r34-rg h3 {
+  font-size: 0.77rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 1.5px; color: #1e90ff;
+  border-bottom: 1px solid rgba(30,144,255,0.18);
+  padding-bottom: 7px; margin-bottom: 9px;
+}
+.r34-rrow {
+  display: grid;
+  grid-template-columns: 170px 1fr;
+  gap: 10px; padding: 6px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+  font-size: 0.79rem; align-items: start;
+}
+.r34-rcode { font-family:monospace; color:#1e90ff; font-weight:700; font-size:.73rem; }
+.r34-rmean { color:#607590; line-height:1.5; }
+.r34-rmean strong { color:#c0d4ec; }
+
+/* QUIZ */
+.r34-quiz { padding: 18px 20px; }
+.r34-qscore { font-size:.7rem; color:#3a6080; letter-spacing:1px; text-align:right; margin-bottom:13px; text-transform:uppercase; }
+.r34-qbox { background:#071524; border:1px solid rgba(255,255,255,0.07); border-radius:8px; padding:15px; margin-bottom:11px; }
+.r34-qtext { font-size:.86rem; font-weight:600; margin-bottom:11px; line-height:1.45; color:#c0d4ec; }
+.r34-qopts { display:flex; flex-direction:column; gap:6px; }
+.r34-qopt {
+  padding:8px 12px;
+  background:#0d1b2e;
+  border:1px solid rgba(255,255,255,0.07);
+  border-radius:5px;
+  cursor:pointer;
+  font-size:.79rem;
+  color:#b0c4dc;
+  text-align:left;
+  transition:all .15s;
+  font-family:inherit;
+}
+.r34-qopt:hover:not(:disabled) { border-color:#1e90ff; background:rgba(30,144,255,.07); }
+.r34-qopt.correct { border-color:#10b981; background:rgba(16,185,129,.1); color:#4de0a8; }
+.r34-qopt.wrong   { border-color:#ef4444; background:rgba(239,68,68,.1);  color:#ff8080; }
+.r34-qopt:disabled { cursor:default; }
+.r34-qfb { font-size:.73rem; margin-top:7px; min-height:15px; color:#3a6080; }
+.r34-qreset {
+  background:none; border:1px solid rgba(255,255,255,.1);
+  border-radius:5px; padding:7px 16px; color:#3a6080;
+  font-size:.73rem; cursor:pointer; transition:all .15s; margin-top:4px; font-family:inherit;
+}
+.r34-qreset:hover { border-color:#1e90ff; color:#1e90ff; }
+</style>
+
+<div class="r34">
+
+  <!-- HEADER -->
+  <div class="r34-header">
+    <div class="r34-hicon">📡</div>
+    <div>
+      <h1>Rule 34 — Manoeuvring &amp; Warning Signals</h1>
+      <p>COLREG Interactive Simulator · Select a signal, then press <strong>Play</strong> to hear and see it</p>
+    </div>
+  </div>
+
+  <!-- TABS -->
+  <div class="r34-tabs">
+    <button class="r34-tab active" onclick="r34tab('sim',this)">Simulator</button>
+    <button class="r34-tab" onclick="r34tab('ref',this)">Reference</button>
+    <button class="r34-tab" onclick="r34tab('quiz',this)">Practice Quiz</button>
+  </div>
+
+  <!-- SIMULATOR -->
+  <div class="r34-panel active" id="r34p-sim">
+    <div class="r34-sim">
+
+      <!-- Sidebar -->
+      <div class="r34-slist">
+        <div class="r34-sgroup">Rule 34(a/b) — Manoeuvring</div>
+        <button class="r34-sbtn" onclick="r34sel('stbd',this)">
+          <div><span class="r34-stag t-man">WHISTLE + LIGHT</span></div>
+          <div class="r34-sbtn-name">Alter Course — Starboard</div>
+          <div class="r34-sbtn-code">•</div>
+        </button>
+        <button class="r34-sbtn" onclick="r34sel('port',this)">
+          <div><span class="r34-stag t-man">WHISTLE + LIGHT</span></div>
+          <div class="r34-sbtn-name">Alter Course — Port</div>
+          <div class="r34-sbtn-code">• •</div>
+        </button>
+        <button class="r34-sbtn" onclick="r34sel('astern',this)">
+          <div><span class="r34-stag t-man">WHISTLE + LIGHT</span></div>
+          <div class="r34-sbtn-name">Operating Astern Propulsion</div>
+          <div class="r34-sbtn-code">• • •</div>
+        </button>
+
+        <div class="r34-sgroup">Rule 34(c) — Overtaking</div>
+        <button class="r34-sbtn" onclick="r34sel('ots',this)">
+          <div><span class="r34-stag t-ovt">NARROW CHANNEL</span></div>
+          <div class="r34-sbtn-name">Overtake on Starboard Side</div>
+          <div class="r34-sbtn-code">— — •</div>
+        </button>
+        <button class="r34-sbtn" onclick="r34sel('otp',this)">
+          <div><span class="r34-stag t-ovt">NARROW CHANNEL</span></div>
+          <div class="r34-sbtn-name">Overtake on Port Side</div>
+          <div class="r34-sbtn-code">— — • •</div>
+        </button>
+        <button class="r34-sbtn" onclick="r34sel('agr',this)">
+          <div><span class="r34-stag t-ovt">AGREEMENT</span></div>
+          <div class="r34-sbtn-name">Agreement to Be Overtaken</div>
+          <div class="r34-sbtn-code">— • — •</div>
+        </button>
+
+        <div class="r34-sgroup">Rules 34(d/e) — Warning</div>
+        <button class="r34-sbtn" onclick="r34sel('doubt',this)">
+          <div><span class="r34-stag t-warn">DANGER SIGNAL</span></div>
+          <div class="r34-sbtn-name">In Doubt / Risk of Collision</div>
+          <div class="r34-sbtn-code">• • • • • (≥5 rapid)</div>
+        </button>
+        <button class="r34-sbtn" onclick="r34sel('bend',this)">
+          <div><span class="r34-stag t-bend">BLIND BEND</span></div>
+          <div class="r34-sbtn-name">Approaching Blind Bend</div>
+          <div class="r34-sbtn-code">—</div>
+        </button>
+      </div>
+
+      <!-- Main display -->
+      <div class="r34-right">
+
+        <div class="r34-scene" id="r34scene">
+          <div class="r34-idle" id="r34idle">
+            <span>🚢</span>
+            Select a signal from the left panel to begin
+          </div>
+        </div>
+
+        <div class="r34-info">
+          <div class="r34-sigtitle empty" id="r34title">No signal selected</div>
+
+          <div>
+            <div class="r34-row-label">📯 Whistle Pattern</div>
+            <div class="r34-blasts" id="r34blasts">
+              <span style="font-size:.75rem;color:#1a3050;font-style:italic;">Select a signal to see the pattern</span>
+            </div>
+          </div>
+
+          <div>
+            <div class="r34-row-label">💡 Supplementary Light Signal (Rule 34b)</div>
+            <div class="r34-flashes" id="r34flashes">
+              <span class="r34-fnone">—</span>
+            </div>
+          </div>
+
+          <div class="r34-ruletext empty" id="r34rule">Select a signal to see the applicable rule text.</div>
+
+          <div class="r34-playw">
+            <button class="r34-playbtn" id="r34pbtn" onclick="r34play()" disabled>▶ Play Signal</button>
+            <span class="r34-playstatus" id="r34pstat">Ready</span>
+          </div>
+        </div>
+
+        <div class="r34-foot">
+          <div class="r34-fc"><div class="r34-flbl">Signal Type</div><div class="r34-fval" id="r34ft">—</div></div>
+          <div class="r34-fc"><div class="r34-flbl">Applies When</div><div class="r34-fval" id="r34fw" style="font-size:.68rem;">—</div></div>
+          <div class="r34-fc"><div class="r34-flbl">Rule Reference</div><div class="r34-fval" id="r34fr">—</div></div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- REFERENCE -->
+  <div class="r34-panel" id="r34p-ref">
+    <div class="r34-ref">
+      <div class="r34-rg">
+        <h3>Rule 34(a) — Manoeuvring Signals (vessels in sight)</h3>
+        <div class="r34-rrow"><div class="r34-rcode">•  one short</div><div class="r34-rmean">I am altering my course to <strong>starboard</strong></div></div>
+        <div class="r34-rrow"><div class="r34-rcode">• •  two short</div><div class="r34-rmean">I am altering my course to <strong>port</strong></div></div>
+        <div class="r34-rrow"><div class="r34-rcode">• • •  three short</div><div class="r34-rmean">I am operating <strong>astern propulsion</strong> (does not necessarily mean the vessel is moving astern)</div></div>
+      </div>
+      <div class="r34-rg">
+        <h3>Rule 34(b) — Supplementary Light Signals</h3>
+        <div class="r34-rrow"><div class="r34-rcode">1 flash</div><div class="r34-rmean">Altering course to <strong>starboard</strong></div></div>
+        <div class="r34-rrow"><div class="r34-rcode">2 flashes</div><div class="r34-rmean">Altering course to <strong>port</strong></div></div>
+        <div class="r34-rrow"><div class="r34-rcode">3 flashes</div><div class="r34-rmean">Operating <strong>astern propulsion</strong></div></div>
+        <div class="r34-rrow"><div class="r34-rcode">Timing</div><div class="r34-rmean">Each flash ≈ 1 s; interval between flashes ≈ 1 s; between successive signals ≥ 10 s. All-round <strong>white</strong> light, visible ≥ 5 miles.</div></div>
+      </div>
+      <div class="r34-rg">
+        <h3>Rule 34(c) — Overtaking in Narrow Channel or Fairway</h3>
+        <div class="r34-rrow"><div class="r34-rcode">— — •</div><div class="r34-rmean">I intend to overtake you on your <strong>starboard</strong> side</div></div>
+        <div class="r34-rrow"><div class="r34-rcode">— — • •</div><div class="r34-rmean">I intend to overtake you on your <strong>port</strong> side</div></div>
+        <div class="r34-rrow"><div class="r34-rcode">— • — •</div><div class="r34-rmean"><strong>Agreement</strong> signal from vessel being overtaken (prolong-short-prolong-short)</div></div>
+      </div>
+      <div class="r34-rg">
+        <h3>Rule 34(d) — Doubt / Danger Signal</h3>
+        <div class="r34-rrow"><div class="r34-rcode">≥ 5 short rapid</div><div class="r34-rmean">Either vessel in doubt about intentions or whether sufficient action is being taken to avoid collision. May be supplemented by ≥ 5 rapid flashes.</div></div>
+      </div>
+      <div class="r34-rg">
+        <h3>Rule 34(e) — Blind Bend</h3>
+        <div class="r34-rrow"><div class="r34-rcode">— one prolonged</div><div class="r34-rmean">Vessel nearing a bend where others may be obscured. Any approaching vessel within hearing replies with <strong>one prolonged blast</strong>.</div></div>
+      </div>
+      <div class="r34-rg">
+        <h3>Rule 34(f) — Multiple Whistles</h3>
+        <div class="r34-rrow"><div class="r34-rcode">One whistle only</div><div class="r34-rmean">If whistles are fitted more than 100 m apart, only one shall be used for manoeuvring and warning signals.</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- QUIZ -->
+  <div class="r34-panel" id="r34p-quiz">
+    <div class="r34-quiz">
+      <div class="r34-qscore" id="r34qs">Score: 0 correct / 0 answered / 10 total</div>
+      <div id="r34qc"></div>
+      <button class="r34-qreset" onclick="r34initQ()">↺ Reset Quiz</button>
+    </div>
+  </div>
+
+</div><!-- /.r34 -->
+
+<script>
+(function(){
+
+// ══ DATA ══════════════════════════════════════════════════════════════════════
+var SIG = {
+  stbd:  { name:'Alter Course to Starboard',     blasts:['s'],            fl:1, anim:'tr',  scene:'ship',  arrow:'↱ Turning Starboard', type:'Manoeuvring',        when:'Vessels in sight',                ref:'Rule 34(a)(b)', rule:'Rule 34(a)/(b): One short blast on the whistle. May be supplemented by one flash of an all-round white light visible at least 5 miles.' },
+  port:  { name:'Alter Course to Port',           blasts:['s','s'],        fl:2, anim:'tl',  scene:'ship',  arrow:'↲ Turning Port',      type:'Manoeuvring',        when:'Vessels in sight',                ref:'Rule 34(a)(b)', rule:'Rule 34(a)/(b): Two short blasts on the whistle. May be supplemented by two flashes of an all-round white light.' },
+  astern:{ name:'Operating Astern Propulsion',    blasts:['s','s','s'],    fl:3, anim:'rev', scene:'ship',  arrow:'↓ Astern Propulsion', type:'Manoeuvring',        when:'Vessels in sight',                ref:'Rule 34(a)(b)', rule:'Rule 34(a)/(b): Three short blasts. Note: signals propulsion working astern — vessel may not yet be moving astern.' },
+  ots:   { name:'Overtake on Starboard Side',     blasts:['p','p','s'],    fl:0,             scene:'ovt',   arrow:'→ Starboard side',    type:'Overtaking',         when:'Narrow channel / fairway',        ref:'Rule 34(c)(i)',  rule:'Rule 34(c)(i): Two prolonged blasts + one short blast — intent to overtake on the other vessel\'s starboard side.' },
+  otp:   { name:'Overtake on Port Side',          blasts:['p','p','s','s'],fl:0,             scene:'ovt',   arrow:'← Port side',         type:'Overtaking',         when:'Narrow channel / fairway',        ref:'Rule 34(c)(i)',  rule:'Rule 34(c)(i): Two prolonged blasts + two short blasts — intent to overtake on the other vessel\'s port side.' },
+  agr:   { name:'Agreement to Be Overtaken',      blasts:['p','s','p','s'],fl:0,             scene:'ovt',                                type:'Overtaking Response', when:'Narrow channel — being overtaken',ref:'Rule 34(c)(ii)', rule:'Rule 34(c)(ii): One prolonged, one short, one prolonged, one short blast — in that order. Vessel being overtaken signals agreement.' },
+  doubt: { name:'In Doubt / Risk of Collision',   blasts:['r','r','r','r','r'],fl:5,         scene:'doubt',                              type:'Danger / Warning',   when:'Vessels in sight — doubt of intentions',ref:'Rule 34(d)', rule:'Rule 34(d): At least five short and rapid blasts (+ optionally ≥5 rapid flashes). Signals doubt about the other vessel\'s intentions or actions.' },
+  bend:  { name:'Approaching Blind Bend',         blasts:['p'],            fl:0,             scene:'bend',                               type:'Warning',            when:'Nearing bend or obstruction',     ref:'Rule 34(e)',     rule:'Rule 34(e): One prolonged blast when nearing a bend where other vessels may be obscured. Any approaching vessel within hearing replies with one prolonged blast.' }
+};
+
+// ══ SHIP SVG ══════════════════════════════════════════════════════════════════
+function mkship(stroke, id) {
+  var si = id ? ' id="'+id+'"' : '';
+  return '<svg class="r34-ssvg" viewBox="0 0 54 80" fill="none"'+si+'>'+
+    '<path d="M27 5 L45 63 Q45 74 27 79 Q9 74 9 63 Z" fill="#0a1828" stroke="'+stroke+'" stroke-width="1.5"/>'+
+    '<rect x="18" y="32" width="18" height="24" rx="2" fill="#071220" stroke="'+stroke+'" stroke-width="1" opacity=".8"/>'+
+    '<rect x="20" y="35" width="5" height="4" rx="1" fill="'+stroke+'" opacity=".35"/>'+
+    '<rect x="29" y="35" width="5" height="4" rx="1" fill="'+stroke+'" opacity=".35"/>'+
+    '<line x1="27" y1="5" x2="27" y2="32" stroke="#243a54" stroke-width="1.8"/>'+
+    '<circle'+(id?' id="mh_'+id+'"':'')+' cx="27" cy="6" r="4" fill="#0d1b2e" stroke="'+stroke+'" stroke-width="1"/>'+
+    '</svg>';
+}
+
+// ══ AUDIO via Howler.js ═══════════════════════════════════════════════════════
+// We build the horn sound as a base64 WAV generated on the fly using Web Audio,
+// then hand it to Howler which handles all iOS unlocking automatically.
+
+function buildHornWav(freqHz, durationSec) {
+  var sampleRate = 22050;
+  var numSamples = Math.floor(sampleRate * durationSec);
+  var attackSamples = Math.floor(sampleRate * 0.15);
+  var releaseSamples = Math.floor(sampleRate * 0.08);
+
+  var samples = new Float32Array(numSamples);
+  for (var i = 0; i < numSamples; i++) {
+    // Fundamental + harmonics for a richer horn sound
+    var t = i / sampleRate;
+    var env;
+    if (i < attackSamples) {
+      env = i / attackSamples;
+    } else if (i > numSamples - releaseSamples) {
+      env = (numSamples - i) / releaseSamples;
+    } else {
+      env = 1.0;
+    }
+    // Combine sine waves at fundamental and harmonics
+    var sig = 0.55 * Math.sin(2 * Math.PI * freqHz * t)
+            + 0.25 * Math.sin(2 * Math.PI * freqHz * 2 * t)
+            + 0.12 * Math.sin(2 * Math.PI * freqHz * 3 * t)
+            + 0.08 * Math.sin(2 * Math.PI * freqHz * 4 * t);
+    samples[i] = sig * env * 0.85;
+  }
+
+  // Encode as 16-bit PCM WAV
+  var dataLen = numSamples * 2;
+  var buf = new ArrayBuffer(44 + dataLen);
+  var view = new DataView(buf);
+  function writeStr(off, str) { for (var i=0;i<str.length;i++) view.setUint8(off+i, str.charCodeAt(i)); }
+  writeStr(0, 'RIFF');
+  view.setUint32(4, 36 + dataLen, true);
+  writeStr(8, 'WAVE');
+  writeStr(12, 'fmt ');
+  view.setUint32(16, 16, true);
+  view.setUint16(20, 1, true);
+  view.setUint16(22, 1, true);
+  view.setUint32(24, sampleRate, true);
+  view.setUint32(28, sampleRate * 2, true);
+  view.setUint16(32, 2, true);
+  view.setUint16(34, 16, true);
+  writeStr(36, 'data');
+  view.setUint32(40, dataLen, true);
+  for (var i = 0; i < numSamples; i++) {
+    var s = Math.max(-1, Math.min(1, samples[i]));
+    view.setInt16(44 + i * 2, s < 0 ? s * 0x8000 : s * 0x7FFF, true);
+  }
+
+  // Convert to base64
+  var bytes = new Uint8Array(buf);
+  var binary = '';
+  for (var i = 0; i < bytes.byteLength; i++) binary += String.fromCharCode(bytes[i]);
+  return 'data:audio/wav;base64,' + btoa(binary);
+}
+
+// Pre-build the two horn sounds (short blast ~0.5s, prolonged ~1.8s, rapid ~0.2s)
+var hornShort    = buildHornWav(220, 0.5);
+var hornProlong  = buildHornWav(220, 1.8);
+var hornRapid    = buildHornWav(220, 0.2);
+
+var howlShort   = new Howl({ src: [hornShort],   format: ['wav'], preload: true, html5: true });
+var howlProlong = new Howl({ src: [hornProlong], format: ['wav'], preload: true, html5: true });
+var howlRapid   = new Howl({ src: [hornRapid],   format: ['wav'], preload: true, html5: true });
+
+function getHowl(type) {
+  if (type === 's') return howlShort;
+  if (type === 'p') return howlProlong;
+  return howlRapid;
+}
+
+// ══ STATE ═════════════════════════════════════════════════════════════════════
+var cur = null, playing = false, tos = [];
+
+// ══ TABS ══════════════════════════════════════════════════════════════════════
+window.r34tab = function(name, btn) {
+  document.querySelectorAll('.r34-tab').forEach(function(b){ b.classList.remove('active'); });
+  btn.classList.add('active');
+  document.querySelectorAll('.r34-panel').forEach(function(p){ p.classList.remove('active'); });
+  document.getElementById('r34p-'+name).classList.add('active');
+  if (name === 'quiz') r34initQ();
+};
+
+// ══ SELECT SIGNAL ═════════════════════════════════════════════════════════════
+window.r34sel = function(key, btn) {
+  if (playing) return;
+  cur = key;
+  document.querySelectorAll('.r34-sbtn').forEach(function(b){ b.classList.remove('active'); });
+  btn.classList.add('active');
+  var s = SIG[key];
+
+  var te = document.getElementById('r34title');
+  te.textContent = s.name; te.classList.remove('empty');
+
+  var be = document.getElementById('r34blasts'); be.innerHTML = '';
+  s.blasts.forEach(function(t, i) {
+    var d = document.createElement('div');
+    d.className = 'r34-bp ' + t;
+    d.id = 'r34b'+i;
+    d.textContent = t==='s'?'•': t==='p'?'———':'•';
+    be.appendChild(d);
+  });
+
+  var fe = document.getElementById('r34flashes'); fe.innerHTML = '';
+  if (s.fl > 0) {
+    var lbl = document.createElement('span');
+    lbl.className = 'r34-fnone'; lbl.style.color='#4a7090';
+    lbl.textContent = (s.fl>=5?'≥5':s.fl)+'×';
+    fe.appendChild(lbl);
+    for (var i=0; i<Math.min(s.fl,5); i++) {
+      var dot = document.createElement('div');
+      dot.className='r34-fd'; dot.id='r34f'+i;
+      fe.appendChild(dot);
+    }
+  } else {
+    var nn = document.createElement('span');
+    nn.className='r34-fnone';
+    nn.textContent='Whistle only — no supplementary light signal for this rule';
+    fe.appendChild(nn);
+  }
+
+  var re = document.getElementById('r34rule');
+  re.textContent = s.rule; re.classList.remove('empty');
+
+  document.getElementById('r34ft').textContent = s.type;
+  document.getElementById('r34fw').textContent = s.when;
+  document.getElementById('r34fr').textContent = s.ref;
+
+  buildScene(s);
+
+  document.getElementById('r34pbtn').disabled = false;
+  document.getElementById('r34pstat').textContent = 'Ready';
+};
+
+function buildScene(s) {
+  var sc = document.getElementById('r34scene'); sc.innerHTML = '';
+
+  if (s.scene === 'ship') {
+    var w = document.createElement('div');
+    w.className = 'r34-sw'; w.id = 'r34sw';
+    w.innerHTML = mkship('#1e90ff','ms') +
+      '<div class="r34-slabel">Signal Vessel</div>'+
+      (s.arrow?'<div style="margin-top:5px;font-size:.82rem;color:#f59e0b;font-weight:700;">'+s.arrow+'</div>':'');
+    sc.appendChild(w);
+  } else if (s.scene === 'ovt') {
+    var row = document.createElement('div');
+    row.className = 'r34-ot-row';
+    row.innerHTML =
+      '<div class="r34-sw">'+mkship('#10b981')+'<div class="r34-slabel" style="color:#3abf88">Overtaking</div></div>'+
+      '<div class="r34-ot-arrow">➜</div>'+
+      '<div class="r34-sw">'+mkship('#ef4444')+'<div class="r34-slabel" style="color:#c04040">Being Overtaken</div></div>';
+    sc.appendChild(row);
+  } else if (s.scene === 'doubt') {
+    var db = document.createElement('div');
+    db.className = 'r34-danger-badge'; db.textContent = '⚠ DANGER SIGNAL';
+    sc.appendChild(db);
+    var dr = document.createElement('div');
+    dr.className = 'r34-ot-row';
+    dr.innerHTML =
+      '<div class="r34-sw">'+mkship('#1e90ff')+'<div class="r34-slabel">Own Vessel</div></div>'+
+      '<div style="font-size:1.8rem;color:#ef4444;animation:r34wf .7s ease-in-out infinite;z-index:1;">⚠</div>'+
+      '<div class="r34-sw">'+mkship('#ef4444')+'<div class="r34-slabel" style="color:#c04040">Other Vessel</div></div>';
+    sc.appendChild(dr);
+  } else if (s.scene === 'bend') {
+    var br = document.createElement('div');
+    br.className = 'r34-bend-row';
+    br.innerHTML =
+      '<div class="r34-sw">'+mkship('#f59e0b')+'<div class="r34-slabel" style="color:#c08010">Approaching</div></div>'+
+      '<div class="r34-wall"></div>'+
+      '<div class="r34-qmark">?</div>';
+    sc.appendChild(br);
+  }
+}
+
+// ══ PLAY ══════════════════════════════════════════════════════════════════════
+window.r34play = function() {
+  if (!cur || playing) return;
+  playing = true;
+  tos.forEach(clearTimeout); tos = [];
+
+  var s = SIG[cur];
+  var pbtn = document.getElementById('r34pbtn');
+  var pst  = document.getElementById('r34pstat');
+  pbtn.disabled = true; pbtn.textContent = '⏸ Playing...'; pbtn.classList.add('playing');
+  pst.textContent = 'Transmitting...';
+
+  document.querySelectorAll('.r34-bp').forEach(function(p){ p.classList.remove('on'); });
+  document.querySelectorAll('.r34-fd').forEach(function(d){ d.classList.remove('on'); });
+  var ms = document.getElementById('ms');
+  if (ms) ms.className = 'r34-ssvg';
+
+  // Duration in ms for each blast type
+  var DUR = { s:500, p:1800, r:200 };
+  var GAP = { s:350, p:380,  r:170 };
+
+  var tms = 0;
+
+  s.blasts.forEach(function(t, i) {
+    var dms = DUR[t];
+    var gms = GAP[t];
+
+    (function(idx, start, end, btype){
+      // Play sound at start
+      var t1 = setTimeout(function(){
+        // Play the Howl for this blast type
+        getHowl(btype).play();
+
+        // Light up pill
+        var p = document.getElementById('r34b'+idx); if (p) p.classList.add('on');
+        var fd = document.getElementById('r34f'+idx); if (fd) fd.classList.add('on');
+
+        // Masthead flash
+        var mh = document.getElementById('mh_ms');
+        if (mh && s.fl > 0) mh.setAttribute('fill','white');
+
+        // Ship animation on first blast
+        if (idx === 0 && s.anim) {
+          var sv = document.getElementById('ms');
+          if (sv) { void sv.offsetWidth; sv.className = 'r34-ssvg ' + s.anim; }
+        }
+      }, start);
+
+      // Turn off pill
+      var t2 = setTimeout(function(){
+        var p = document.getElementById('r34b'+idx); if (p) p.classList.remove('on');
+        var fd = document.getElementById('r34f'+idx); if (fd) fd.classList.remove('on');
+        var mh = document.getElementById('mh_ms');
+        if (mh) mh.setAttribute('fill','#0d1b2e');
+      }, end);
+
+      tos.push(t1, t2);
+    })(i, tms, tms + dms, t);
+
+    tms += dms + gms;
+  });
+
+  var done = setTimeout(function(){
+    playing = false;
+    pbtn.disabled = false; pbtn.textContent = '▶ Play Signal'; pbtn.classList.remove('playing');
+    pst.textContent = '✓ Complete';
+    setTimeout(function(){ pst.textContent = 'Ready'; }, 1800);
+  }, tms + 200);
+  tos.push(done);
+};
+
+// ══ QUIZ ══════════════════════════════════════════════════════════════════════
+var QS = [
+  {q:'A vessel sounds ONE short blast. What does this mean?',                                    o:['Altering course to port','Altering course to starboard','Operating astern propulsion','In doubt of intentions'],        a:1, r:'Rule 34(a)'},
+  {q:'What signal indicates intent to overtake on the starboard side in a narrow channel?',      o:['One prolonged + one short','Two short blasts','Two prolonged + one short','Two prolonged + two short'],               a:2, r:'Rule 34(c)(i)'},
+  {q:'How many light flashes supplement "altering course to port"?',                             o:['1 flash','2 flashes','3 flashes','5 flashes'],                                                                         a:1, r:'Rule 34(b)'},
+  {q:'Three short blasts on the whistle means:',                                                 o:['Altering course to starboard','Risk of collision — doubt signal','Operating astern propulsion','Approaching a bend'],  a:2, r:'Rule 34(a)'},
+  {q:'A vessel approaching a blind bend shall sound:',                                           o:['Two short blasts','Five rapid blasts','One prolonged blast','Two prolonged blasts'],                                   a:2, r:'Rule 34(e)'},
+  {q:'The agreement signal from the vessel being overtaken is:',                                 o:['One short blast','Two prolonged + one short','Prolonged-short-prolonged-short','Five rapid blasts'],                  a:2, r:'Rule 34(c)(ii)'},
+  {q:'The doubt/danger signal consists of at least:',                                            o:['3 short blasts','5 short rapid blasts','2 prolonged blasts','1 prolonged + 4 short'],                                 a:1, r:'Rule 34(d)'},
+  {q:'The supplementary light signal under Rule 34(b) uses which colour light?',                 o:['Red','Yellow','Green','White'],                                                                                        a:3, r:'Rule 34(b)(iii)'},
+  {q:'If two whistles are fitted more than 100 m apart, manoeuvring signals shall be given on:', o:['Both simultaneously','Only one whistle','The forward whistle only','The louder whistle'],                             a:1, r:'Rule 34(f)'},
+  {q:'Each flash in a Rule 34(b) light signal shall last approximately:',                        o:['0.5 seconds','1 second','2 seconds','3 seconds'],                                                                     a:1, r:'Rule 34(b)(ii)'}
+];
+var qst = [];
+
+window.r34initQ = function() {
+  qst = QS.map(function(){ return null; });
+  renderQ();
+};
+
+function renderQ() {
+  var c = qst.filter(function(s){ return s===true; }).length;
+  var a = qst.filter(function(s){ return s!==null; }).length;
+  document.getElementById('r34qs').textContent = 'Score: '+c+' correct / '+a+' answered / '+QS.length+' total';
+  var container = document.getElementById('r34qc'); container.innerHTML = '';
+  QS.forEach(function(q, qi) {
+    var box = document.createElement('div'); box.className='r34-qbox';
+    var qt = document.createElement('div'); qt.className='r34-qtext'; qt.textContent=(qi+1)+'. '+q.q; box.appendChild(qt);
+    var opts = document.createElement('div'); opts.className='r34-qopts';
+    var fb = document.createElement('div'); fb.className='r34-qfb';
+    if (qst[qi]!==null) {
+      fb.textContent = qst[qi] ? '✓ Correct! ('+q.r+')' : '✗ Incorrect — correct answer: '+q.o[q.a]+' ('+q.r+')';
+      fb.style.color = qst[qi] ? '#10b981' : '#ef4444';
+    }
+    q.o.forEach(function(opt, oi) {
+      var b = document.createElement('button'); b.className='r34-qopt'; b.textContent=opt;
+      if (qst[qi]!==null) {
+        b.disabled=true;
+        if (oi===q.a) b.classList.add('correct');
+      }
+      b.onclick = function() {
+        if (qst[qi]!==null) return;
+        var ok = (oi===q.a); qst[qi]=ok;
+        opts.querySelectorAll('.r34-qopt').forEach(function(ob,obi){
+          ob.disabled=true;
+          if (obi===q.a) ob.classList.add('correct');
+          else if (obi===oi && !ok) ob.classList.add('wrong');
+        });
+        fb.textContent = ok ? '✓ Correct! ('+q.r+')' : '✗ Incorrect — correct answer: '+q.o[q.a]+' ('+q.r+')';
+        fb.style.color = ok ? '#10b981' : '#ef4444';
+        var c2=qst.filter(function(s){return s===true;}).length;
+        var a2=qst.filter(function(s){return s!==null;}).length;
+        document.getElementById('r34qs').textContent='Score: '+c2+' correct / '+a2+' answered / '+QS.length+' total';
+      };
+      opts.appendChild(b);
+    });
+    box.appendChild(opts); box.appendChild(fb); container.appendChild(box);
+  });
+}
+
+r34initQ();
+})();
+</script>
