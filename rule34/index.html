@@ -606,9 +606,9 @@ function buildHornWav(freqHz, durationSec) {
 }
 
 // Pre-build the two horn sounds (short blast ~0.5s, prolonged ~1.8s, rapid ~0.2s)
-var hornShort    = buildHornWav(220, 0.5);
-var hornProlong  = buildHornWav(220, 1.8);
-var hornRapid    = buildHornWav(220, 0.2);
+var hornShort    = buildHornWav(220, 1.0);
+var hornProlong  = buildHornWav(220, 5.0);
+var hornRapid    = buildHornWav(220, 0.3);
 
 var howlShort   = new Howl({ src: [hornShort],   format: ['wav'], preload: true, html5: true });
 var howlProlong = new Howl({ src: [hornProlong], format: ['wav'], preload: true, html5: true });
@@ -741,8 +741,8 @@ window.r34play = function() {
   if (ms) ms.className = 'r34-ssvg';
 
   // Duration in ms for each blast type
-  var DUR = { s:500, p:1800, r:200 };
-  var GAP = { s:350, p:380,  r:170 };
+  var DUR = { s:1000, p:5000, r:300 };
+  var GAP = { s:400,  p:500,  r:200 };
 
   var tms = 0;
 
