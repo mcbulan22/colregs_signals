@@ -610,9 +610,9 @@ var hornShort    = buildHornWav(220, 0.5);
 var hornProlong  = buildHornWav(220, 1.8);
 var hornRapid    = buildHornWav(220, 0.2);
 
-var howlShort   = new Howl({ src: [hornShort],   format: ['wav'], preload: true });
-var howlProlong = new Howl({ src: [hornProlong], format: ['wav'], preload: true });
-var howlRapid   = new Howl({ src: [hornRapid],   format: ['wav'], preload: true });
+var howlShort   = new Howl({ src: [hornShort],   format: ['wav'], preload: true, html5: true });
+var howlProlong = new Howl({ src: [hornProlong], format: ['wav'], preload: true, html5: true });
+var howlRapid   = new Howl({ src: [hornRapid],   format: ['wav'], preload: true, html5: true });
 
 function getHowl(type) {
   if (type === 's') return howlShort;
