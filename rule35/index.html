@@ -1,0 +1,898 @@
+<script src="https://cdnjs.cloudflare.com/ajax/libs/howler/2.2.4/howler.min.js"></script>
+<style>
+/* All styles scoped to .r35 — safe to paste inside any Moodle div */
+.r35 * { box-sizing: border-box; margin: 0; padding: 0; }
+.r35 {
+  font-family: 'Segoe UI', Arial, sans-serif;
+  background: #0d1b2e;
+  color: #e2e8f0;
+  border-radius: 12px;
+  overflow: hidden;
+  width: 100%;
+  max-width: 880px;
+  margin: 0 auto;
+  border: 1px solid rgba(255,255,255,0.08);
+}
+
+/* HEADER */
+.r35-header {
+  background: #071524;
+  border-bottom: 2px solid #7c3aed;
+  padding: 14px 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.r35-header h1 { font-size: 1.1rem; font-weight: 700; color: #fff; }
+.r35-header p  { font-size: 0.72rem; color: #5a7a9a; margin-top: 2px; }
+.r35-hicon { font-size: 1.8rem; flex-shrink: 0; }
+
+/* TABS */
+.r35-tabs {
+  display: flex;
+  background: #071524;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  flex-wrap: wrap;
+}
+.r35-tab {
+  padding: 10px 18px;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: #5a7a9a;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+.r35-tab:hover { color: #c0d4ec; }
+.r35-tab.active { color: #7c3aed; border-bottom-color: #7c3aed; }
+
+/* PANELS */
+.r35-panel { display: none; }
+.r35-panel.active { display: block; }
+
+/* SIMULATOR */
+.r35-sim {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+}
+@media (max-width: 600px) {
+  .r35-sim { grid-template-columns: 1fr; }
+}
+
+/* Signal sidebar */
+.r35-slist {
+  background: #071524;
+  border-right: 1px solid rgba(255,255,255,0.08);
+  padding: 10px;
+  overflow-y: auto;
+  max-height: 600px;
+}
+.r35-sgroup {
+  font-size: 0.6rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: #3a5070;
+  padding: 10px 4px 5px;
+  border-top: 1px solid rgba(255,255,255,0.05);
+  margin-top: 4px;
+}
+.r35-sgroup:first-child { border-top: none; margin-top: 0; padding-top: 4px; }
+.r35-sbtn {
+  width: 100%;
+  background: #0d1b2e;
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 7px;
+  padding: 9px 11px;
+  cursor: pointer;
+  text-align: left;
+  color: #c8d8ec;
+  margin-bottom: 5px;
+  transition: border-color 0.15s, background 0.15s;
+}
+.r35-sbtn:hover  { border-color: #7c3aed; background: rgba(124,58,237,0.06); }
+.r35-sbtn.active { border-color: #7c3aed; background: rgba(124,58,237,0.13); }
+.r35-sbtn-name { font-size: 0.79rem; font-weight: 600; line-height: 1.3; }
+.r35-sbtn-code { font-size: 0.72rem; color: #7c3aed; margin-top: 3px; font-family: monospace; letter-spacing: 1px; }
+.r35-stag {
+  display: inline-block;
+  font-size: 0.57rem;
+  padding: 1px 5px;
+  border-radius: 3px;
+  margin-bottom: 4px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+.t-pw  { background:rgba(124,58,237,.2);  color:#a78bfa; }
+.t-sp  { background:rgba(16,185,129,.2);  color:#4de0a8; }
+.t-anc { background:rgba(245,158,11,.2);  color:#ffc030; }
+.t-agr { background:rgba(239,68,68,.2);   color:#ff8080; }
+.t-sml { background:rgba(100,116,139,.2); color:#94a3b8; }
+.t-pil { background:rgba(56,189,248,.2);  color:#7dd3fc; }
+
+/* Right display */
+.r35-right { display: flex; flex-direction: column; }
+
+/* Scene */
+.r35-scene {
+  background: radial-gradient(ellipse at 50% 60%, #0c1e30 0%, #050c18 100%);
+  min-height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  position: relative;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  overflow: hidden;
+}
+.r35-fog {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse at 20% 50%, rgba(180,200,220,0.07) 0%, transparent 60%),
+    radial-gradient(ellipse at 80% 40%, rgba(180,200,220,0.05) 0%, transparent 55%),
+    radial-gradient(ellipse at 50% 80%, rgba(180,200,220,0.06) 0%, transparent 50%);
+  pointer-events: none;
+  animation: r35fogdrift 8s ease-in-out infinite alternate;
+}
+@keyframes r35fogdrift {
+  0%   { opacity: 0.6; transform: scaleX(1); }
+  100% { opacity: 1;   transform: scaleX(1.04); }
+}
+.r35-scene::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0; right: 0; height: 40%;
+  background: repeating-linear-gradient(180deg, transparent, transparent 13px, rgba(124,58,237,0.025) 13px, rgba(124,58,237,0.025) 14px);
+  pointer-events: none;
+}
+.r35-idle {
+  text-align: center; color: #2a4060; font-size: 0.83rem;
+  position: relative; z-index: 1;
+}
+.r35-idle span { font-size: 2.2rem; display: block; margin-bottom: 6px; }
+
+/* Ship */
+.r35-sw {
+  display: flex; flex-direction: column; align-items: center; gap: 7px;
+  position: relative; z-index: 1;
+}
+.r35-slabel { font-size: 0.6rem; letter-spacing: 2px; text-transform: uppercase; color: #3a5070; }
+.r35-ssvg { width: 54px; height: 80px; }
+
+/* Anchor icon */
+.r35-anchor {
+  font-size: 1.6rem; position: absolute; bottom: 8px; opacity: 0.5; z-index: 2;
+}
+
+/* Sound wave rings */
+.r35-soundwave {
+  position: absolute; top: 50%; left: 50%;
+  width: 60px; height: 60px;
+  margin-left: -30px; margin-top: -30px;
+  border-radius: 50%; border: 2px solid #7c3aed;
+  opacity: 0; z-index: 2; pointer-events: none;
+}
+.r35-soundwave.ring1 { animation: r35ring 1.4s ease-out infinite; }
+.r35-soundwave.ring2 { animation: r35ring 1.4s ease-out 0.45s infinite; }
+.r35-soundwave.ring3 { animation: r35ring 1.4s ease-out 0.9s infinite; }
+@keyframes r35ring {
+  0%   { transform: scale(0.5); opacity: 0.8; }
+  100% { transform: scale(3.5); opacity: 0; }
+}
+.r35-soundwave.bell { border-color: #f59e0b; }
+.r35-soundwave.bell.ring1 { animation: r35bellring 1s ease-out infinite; }
+.r35-soundwave.bell.ring2 { animation: r35bellring 1s ease-out 0.3s infinite; }
+.r35-soundwave.bell.ring3 { animation: r35bellring 1s ease-out 0.6s infinite; }
+@keyframes r35bellring {
+  0%   { transform: scale(0.5); opacity: 0.9; }
+  100% { transform: scale(2.8); opacity: 0; }
+}
+
+/* Visibility badge */
+.r35-vis-badge {
+  position: absolute; top: 10px; left: 12px;
+  background: rgba(124,58,237,0.15); border: 1px solid rgba(124,58,237,0.4);
+  border-radius: 5px; padding: 3px 9px;
+  font-size: 0.64rem; color: #a78bfa;
+  letter-spacing: 1px; text-transform: uppercase; z-index: 3;
+}
+
+/* Aground line */
+.r35-aground-line {
+  position: absolute; bottom: 18px; left: 50%; transform: translateX(-50%);
+  width: 100px; height: 8px;
+  background: repeating-linear-gradient(90deg, #374151, #374151 8px, #1f2937 8px, #1f2937 16px);
+  border-radius: 2px; border-top: 2px solid #6b7280; z-index: 2;
+}
+
+/* Multi-ship scene */
+.r35-fleet {
+  display: flex; align-items: flex-end; gap: 20px;
+  position: relative; z-index: 1;
+  flex-wrap: wrap; justify-content: center;
+}
+
+/* Info area */
+.r35-info {
+  padding: 14px 18px;
+  display: flex; flex-direction: column; gap: 12px;
+  background: #0a1628;
+}
+.r35-sigtitle { font-size: 0.97rem; font-weight: 700; color: #fff; min-height: 20px; }
+.r35-sigtitle.empty { color: #2a4060; font-weight: 400; font-style: italic; font-size: 0.83rem; }
+.r35-row-label { font-size: 0.62rem; letter-spacing: 2px; text-transform: uppercase; color: #3a5070; margin-bottom: 7px; }
+
+/* Blast pills */
+.r35-blasts { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; min-height: 36px; }
+.r35-bp {
+  height: 36px; border-radius: 18px;
+  display: flex; align-items: center; justify-content: center;
+  font-family: monospace; font-weight: 700; border: 2px solid;
+  transition: transform 0.08s, box-shadow 0.08s;
+}
+.r35-bp.s    { width:36px; font-size:.85rem; border-color:#7c3aed; color:#7c3aed; background:rgba(124,58,237,.1); }
+.r35-bp.p    { width:68px; font-size:.62rem; border-color:#a78bfa; color:#a78bfa; background:rgba(167,139,250,.1); letter-spacing:1px; }
+.r35-bp.bell { width:48px; font-size:.8rem;  border-color:#f59e0b; color:#f59e0b; background:rgba(245,158,11,.1); border-radius:6px; }
+.r35-bp.gong { width:48px; font-size:.75rem; border-color:#fb923c; color:#fb923c; background:rgba(251,146,60,.1); border-radius:6px; }
+.r35-bp.bstr { width:36px; font-size:.8rem;  border-color:#f59e0b; color:#f59e0b; background:rgba(245,158,11,.1); border-radius:6px; }
+.r35-bp.any  { width:48px; font-size:.75rem; border-color:#94a3b8; color:#94a3b8; background:rgba(148,163,184,.1); }
+.r35-bp.on   { box-shadow: 0 0 16px currentColor; transform: scale(1.15); }
+
+/* Interval badge */
+.r35-interval {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: #071524; border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 6px; padding: 6px 12px;
+  font-size: 0.75rem; color: #7090a8;
+}
+.r35-interval strong { color: #7c3aed; }
+
+/* Rule text */
+.r35-ruletext {
+  background: #071524; border-left: 3px solid #7c3aed;
+  border-radius: 0 5px 5px 0; padding: 9px 13px;
+  font-size: 0.77rem; color: #607590; line-height: 1.6; min-height: 42px;
+}
+.r35-ruletext.empty { border-left-color: #0d2040; color: #2a4060; font-style: italic; }
+
+/* Play controls */
+.r35-playw { display: flex; align-items: center; gap: 12px; }
+.r35-playbtn {
+  background: #7c3aed; color: #fff; border: none; border-radius: 6px;
+  padding: 9px 22px; font-size: 0.84rem; font-weight: 700; cursor: pointer;
+  transition: background 0.15s;
+}
+.r35-playbtn:hover:not(:disabled) { background: #8b4cf0; }
+.r35-playbtn:disabled { background: #112030; color: #2a4060; cursor: not-allowed; }
+.r35-playbtn.playing { background: #10b981; }
+.r35-playstatus { font-size: 0.7rem; color: #3a5070; letter-spacing: 1px; text-transform: uppercase; }
+
+/* Footer bar */
+.r35-foot {
+  display: grid; grid-template-columns: repeat(3,1fr);
+  background: #071524; border-top: 1px solid rgba(255,255,255,0.05);
+}
+.r35-fc { padding: 9px 13px; border-right: 1px solid rgba(255,255,255,0.05); }
+.r35-fc:last-child { border-right: none; }
+.r35-flbl { font-size: 0.58rem; letter-spacing: 2px; text-transform: uppercase; color: #3a5070; margin-bottom: 3px; }
+.r35-fval { font-size: 0.78rem; font-weight: 600; color: #7c3aed; }
+
+/* REFERENCE */
+.r35-ref { padding: 18px 20px; }
+.r35-rg  { margin-bottom: 20px; }
+.r35-rg h3 {
+  font-size: 0.77rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 1.5px; color: #7c3aed;
+  border-bottom: 1px solid rgba(124,58,237,0.2);
+  padding-bottom: 7px; margin-bottom: 9px;
+}
+.r35-rrow {
+  display: grid; grid-template-columns: 190px 1fr;
+  gap: 10px; padding: 6px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+  font-size: 0.79rem; align-items: start;
+}
+.r35-rcode { font-family: monospace; color: #7c3aed; font-weight: 700; font-size: .72rem; line-height: 1.5; }
+.r35-rmean { color: #607590; line-height: 1.5; }
+.r35-rmean strong { color: #c0d4ec; }
+
+/* QUIZ */
+.r35-quiz { padding: 18px 20px; }
+.r35-qscore { font-size:.7rem; color:#3a5070; letter-spacing:1px; text-align:right; margin-bottom:13px; text-transform:uppercase; }
+.r35-qbox { background:#071524; border:1px solid rgba(255,255,255,0.07); border-radius:8px; padding:15px; margin-bottom:11px; }
+.r35-qtext { font-size:.86rem; font-weight:600; margin-bottom:11px; line-height:1.45; color:#c0d4ec; }
+.r35-qopts { display:flex; flex-direction:column; gap:6px; }
+.r35-qopt {
+  padding:8px 12px; background:#0d1b2e;
+  border:1px solid rgba(255,255,255,0.07); border-radius:5px;
+  cursor:pointer; font-size:.79rem; color:#b0c4dc;
+  text-align:left; transition:all .15s; font-family:inherit;
+}
+.r35-qopt:hover:not(:disabled) { border-color:#7c3aed; background:rgba(124,58,237,.07); }
+.r35-qopt.correct { border-color:#10b981; background:rgba(16,185,129,.1); color:#4de0a8; }
+.r35-qopt.wrong   { border-color:#ef4444; background:rgba(239,68,68,.1);  color:#ff8080; }
+.r35-qopt:disabled { cursor:default; }
+.r35-qfb { font-size:.73rem; margin-top:7px; min-height:15px; color:#3a5070; }
+.r35-qreset {
+  background:none; border:1px solid rgba(255,255,255,.1);
+  border-radius:5px; padding:7px 16px; color:#3a5070;
+  font-size:.73rem; cursor:pointer; transition:all .15s; margin-top:4px; font-family:inherit;
+}
+.r35-qreset:hover { border-color:#7c3aed; color:#7c3aed; }
+</style>
+
+<div class="r35">
+
+  <!-- HEADER -->
+  <div class="r35-header">
+    <div class="r35-hicon">🌫️</div>
+    <div>
+      <h1>Rule 35 — Sound Signals in Restricted Visibility</h1>
+      <p>COLREG Interactive Simulator · Select a vessel type, then press <strong>Play</strong> to hear its fog signal</p>
+    </div>
+  </div>
+
+  <!-- TABS -->
+  <div class="r35-tabs">
+    <button class="r35-tab active" onclick="r35tab('sim',this)">Simulator</button>
+    <button class="r35-tab" onclick="r35tab('ref',this)">Reference</button>
+    <button class="r35-tab" onclick="r35tab('quiz',this)">Practice Quiz</button>
+  </div>
+
+  <!-- SIMULATOR -->
+  <div class="r35-panel active" id="r35p-sim">
+    <div class="r35-sim">
+
+      <!-- Sidebar -->
+      <div class="r35-slist">
+        <div class="r35-sgroup">Power-driven Vessels</div>
+        <button class="r35-sbtn" onclick="r35sel('pdw',this)">
+          <div><span class="r35-stag t-pw">RULE 35(a)</span></div>
+          <div class="r35-sbtn-name">Power-driven — Making Way</div>
+          <div class="r35-sbtn-code">— (every ≤2 min)</div>
+        </button>
+        <button class="r35-sbtn" onclick="r35sel('pds',this)">
+          <div><span class="r35-stag t-pw">RULE 35(b)</span></div>
+          <div class="r35-sbtn-name">Power-driven — Stopped, No Way</div>
+          <div class="r35-sbtn-code">— — (every ≤2 min)</div>
+        </button>
+
+        <div class="r35-sgroup">Special Vessels (Rule 35c)</div>
+        <button class="r35-sbtn" onclick="r35sel('nuc',this)">
+          <div><span class="r35-stag t-sp">RULE 35(c)</span></div>
+          <div class="r35-sbtn-name">Not Under Command (NUC)</div>
+          <div class="r35-sbtn-code">— • • (every ≤2 min)</div>
+        </button>
+        <button class="r35-sbtn" onclick="r35sel('ram',this)">
+          <div><span class="r35-stag t-sp">RULE 35(c)</span></div>
+          <div class="r35-sbtn-name">Restricted Ability to Manoeuvre</div>
+          <div class="r35-sbtn-code">— • • (every ≤2 min)</div>
+        </button>
+        <button class="r35-sbtn" onclick="r35sel('sail',this)">
+          <div><span class="r35-stag t-sp">RULE 35(c)</span></div>
+          <div class="r35-sbtn-name">Sailing Vessel / Fishing</div>
+          <div class="r35-sbtn-code">— • • (every ≤2 min)</div>
+        </button>
+        <button class="r35-sbtn" onclick="r35sel('towing',this)">
+          <div><span class="r35-stag t-sp">RULE 35(c)</span></div>
+          <div class="r35-sbtn-name">Towing / Pushing Vessel</div>
+          <div class="r35-sbtn-code">— • • (every ≤2 min)</div>
+        </button>
+
+        <div class="r35-sgroup">Towed Vessel</div>
+        <button class="r35-sbtn" onclick="r35sel('towed',this)">
+          <div><span class="r35-stag t-agr">RULE 35(e)</span></div>
+          <div class="r35-sbtn-name">Vessel Being Towed (last in tow)</div>
+          <div class="r35-sbtn-code">— • • • (every ≤2 min)</div>
+        </button>
+
+        <div class="r35-sgroup">At Anchor / Aground</div>
+        <button class="r35-sbtn" onclick="r35sel('anc',this)">
+          <div><span class="r35-stag t-anc">RULE 35(g)</span></div>
+          <div class="r35-sbtn-name">Vessel at Anchor</div>
+          <div class="r35-sbtn-code">🔔 rapid ~5s (every ≤1 min)</div>
+        </button>
+        <button class="r35-sbtn" onclick="r35sel('ancbig',this)">
+          <div><span class="r35-stag t-anc">RULE 35(g)</span></div>
+          <div class="r35-sbtn-name">Vessel at Anchor ≥100 m</div>
+          <div class="r35-sbtn-code">🔔 fwd + 🔕 aft gong</div>
+        </button>
+        <button class="r35-sbtn" onclick="r35sel('agr',this)">
+          <div><span class="r35-stag t-agr">RULE 35(h)</span></div>
+          <div class="r35-sbtn-name">Vessel Aground</div>
+          <div class="r35-sbtn-code">3 strokes + 🔔 rapid + 3 strokes</div>
+        </button>
+
+        <div class="r35-sgroup">Small &amp; Pilot Vessels</div>
+        <button class="r35-sbtn" onclick="r35sel('small',this)">
+          <div><span class="r35-stag t-sml">RULE 35(i/j)</span></div>
+          <div class="r35-sbtn-name">Vessel &lt;20 m</div>
+          <div class="r35-sbtn-code">Any efficient signal ≤2 min</div>
+        </button>
+        <button class="r35-sbtn" onclick="r35sel('pilot',this)">
+          <div><span class="r35-stag t-pil">RULE 35(k)</span></div>
+          <div class="r35-sbtn-name">Pilot Vessel on Duty</div>
+          <div class="r35-sbtn-code">Normal signal + • • • •</div>
+        </button>
+      </div>
+
+      <!-- Main display -->
+      <div class="r35-right">
+        <div class="r35-scene" id="r35scene">
+          <div class="r35-fog"></div>
+          <div class="r35-idle" id="r35idle">
+            <span>🌫️</span>
+            Select a vessel type from the left panel
+          </div>
+        </div>
+
+        <div class="r35-info">
+          <div class="r35-sigtitle empty" id="r35title">No vessel selected</div>
+
+          <div>
+            <div class="r35-row-label">📯 Fog Signal Pattern</div>
+            <div class="r35-blasts" id="r35blasts">
+              <span style="font-size:.75rem;color:#1a3050;font-style:italic;">Select a vessel to see the signal</span>
+            </div>
+          </div>
+
+          <div id="r35intervalrow" style="display:none;">
+            <div class="r35-interval" id="r35interval"></div>
+          </div>
+
+          <div class="r35-ruletext empty" id="r35rule">Select a vessel type to see the applicable rule text.</div>
+
+          <div class="r35-playw">
+            <button class="r35-playbtn" id="r35pbtn" onclick="r35play()" disabled>▶ Play Signal</button>
+            <span class="r35-playstatus" id="r35pstat">Ready</span>
+          </div>
+        </div>
+
+        <div class="r35-foot">
+          <div class="r35-fc"><div class="r35-flbl">Vessel Type</div><div class="r35-fval" id="r35ft">—</div></div>
+          <div class="r35-fc"><div class="r35-flbl">Interval</div><div class="r35-fval" id="r35fw">—</div></div>
+          <div class="r35-fc"><div class="r35-flbl">Rule Reference</div><div class="r35-fval" id="r35fr">—</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- REFERENCE -->
+  <div class="r35-panel" id="r35p-ref">
+    <div class="r35-ref">
+      <div class="r35-rg">
+        <h3>Rule 35(a) — Power-driven vessel making way</h3>
+        <div class="r35-rrow"><div class="r35-rcode">— one prolonged</div><div class="r35-rmean">At intervals of not more than <strong>2 minutes</strong></div></div>
+      </div>
+      <div class="r35-rg">
+        <h3>Rule 35(b) — Power-driven vessel stopped, no way</h3>
+        <div class="r35-rrow"><div class="r35-rcode">— — two prolonged</div><div class="r35-rmean">Two prolonged blasts with an interval of about <strong>2 seconds</strong> between them. At intervals of not more than <strong>2 minutes</strong></div></div>
+      </div>
+      <div class="r35-rg">
+        <h3>Rule 35(c) — NUC, RAM, Constrained by Draught, Sailing, Fishing, Towing/Pushing</h3>
+        <div class="r35-rrow"><div class="r35-rcode">— • •  prolong + 2 short</div><div class="r35-rmean">At intervals of not more than <strong>2 minutes</strong>. These vessels use this signal <em>instead</em> of (a) or (b)</div></div>
+      </div>
+      <div class="r35-rg">
+        <h3>Rule 35(d) — Fishing vessel at anchor / RAM vessel at anchor during work</h3>
+        <div class="r35-rrow"><div class="r35-rcode">— • •  prolong + 2 short</div><div class="r35-rmean">Uses signal from (c) <em>instead</em> of the anchor bell signal from (g)</div></div>
+      </div>
+      <div class="r35-rg">
+        <h3>Rule 35(e) — Last vessel of a tow (if manned)</h3>
+        <div class="r35-rrow"><div class="r35-rcode">— • • •  prolong + 3 short</div><div class="r35-rmean">At intervals of not more than <strong>2 minutes</strong>. When practicable, given immediately after the towing vessel's signal</div></div>
+      </div>
+      <div class="r35-rg">
+        <h3>Rule 35(f) — Composite unit (pushing + pushed, rigidly connected)</h3>
+        <div class="r35-rrow"><div class="r35-rcode">— or — —</div><div class="r35-rmean">Treated as a <strong>power-driven vessel</strong> — uses signals from (a) or (b)</div></div>
+      </div>
+      <div class="r35-rg">
+        <h3>Rule 35(g) — Vessel at anchor</h3>
+        <div class="r35-rrow"><div class="r35-rcode">🔔 rapid ring ~5 s</div><div class="r35-rmean">At intervals of not more than <strong>1 minute</strong></div></div>
+        <div class="r35-rrow"><div class="r35-rcode">Vessel ≥100 m</div><div class="r35-rmean">Bell in <strong>fore</strong> part, then immediately gong in <strong>after</strong> part, each ~5 s</div></div>
+        <div class="r35-rrow"><div class="r35-rcode">Optional: • — •</div><div class="r35-rmean">Short-prolonged-short whistle to warn approaching vessels — may be added</div></div>
+      </div>
+      <div class="r35-rg">
+        <h3>Rule 35(h) — Vessel aground</h3>
+        <div class="r35-rrow"><div class="r35-rcode">3 strokes + 🔔 rapid ~5 s + 3 strokes</div><div class="r35-rmean">Three separate bell strokes <em>before and after</em> the rapid bell ring. Plus (g) gong signal if applicable. May also sound an appropriate whistle signal</div></div>
+      </div>
+      <div class="r35-rg">
+        <h3>Rule 35(i/j) — Small vessels</h3>
+        <div class="r35-rrow"><div class="r35-rcode">12 m – 20 m</div><div class="r35-rmean">Not obliged to give bell signals but must make <strong>some other efficient sound signal</strong> at intervals of not more than 2 minutes if bell not given</div></div>
+        <div class="r35-rrow"><div class="r35-rcode">&lt; 12 m</div><div class="r35-rmean">Not obliged to give any of the above signals but must make <strong>some efficient sound signal</strong> at intervals of not more than 2 minutes</div></div>
+      </div>
+      <div class="r35-rg">
+        <h3>Rule 35(k) — Pilot vessel on pilotage duty</h3>
+        <div class="r35-rrow"><div class="r35-rcode">Normal signal + • • • •</div><div class="r35-rmean">May add an <strong>identity signal of four short blasts</strong> in addition to signals from (a), (b) or (g)</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- QUIZ -->
+  <div class="r35-panel" id="r35p-quiz">
+    <div class="r35-quiz">
+      <div class="r35-qscore" id="r35qs">Score: 0 correct / 0 answered / 12 total</div>
+      <div id="r35qc"></div>
+      <button class="r35-qreset" onclick="r35initQ()">↺ Reset Quiz</button>
+    </div>
+  </div>
+
+</div><!-- /.r35 -->
+
+<script>
+(function(){
+
+// ══ SHIP SVG ══════════════════════════════════════════════════════════════════
+function mkship(stroke, id, extra) {
+  var si = id ? ' id="'+id+'"' : '';
+  extra = extra || '';
+  return '<svg class="r35-ssvg" viewBox="0 0 54 80" fill="none"'+si+'>'+
+    '<path d="M27 5 L45 63 Q45 74 27 79 Q9 74 9 63 Z" fill="#0a1828" stroke="'+stroke+'" stroke-width="1.5"/>'+
+    '<rect x="18" y="32" width="18" height="24" rx="2" fill="#071220" stroke="'+stroke+'" stroke-width="1" opacity=".8"/>'+
+    '<rect x="20" y="35" width="5" height="4" rx="1" fill="'+stroke+'" opacity=".35"/>'+
+    '<rect x="29" y="35" width="5" height="4" rx="1" fill="'+stroke+'" opacity=".35"/>'+
+    '<line x1="27" y1="5" x2="27" y2="32" stroke="#243a54" stroke-width="1.8"/>'+
+    extra+
+    '</svg>';
+}
+function mkshipSmall(stroke) {
+  return '<svg class="r35-ssvg" viewBox="0 0 54 80" fill="none" style="width:36px;height:54px;">'+
+    '<path d="M27 12 L42 62 Q42 72 27 77 Q12 72 12 62 Z" fill="#0a1828" stroke="'+stroke+'" stroke-width="1.5"/>'+
+    '<rect x="20" y="36" width="14" height="18" rx="2" fill="#071220" stroke="'+stroke+'" stroke-width="1" opacity=".8"/>'+
+    '</svg>';
+}
+function mkRings(type) {
+  var cls = type === 'bell' ? 'bell' : '';
+  return '<div class="r35-soundwave ring1 '+cls+'"></div>'+
+         '<div class="r35-soundwave ring2 '+cls+'"></div>'+
+         '<div class="r35-soundwave ring3 '+cls+'"></div>';
+}
+
+// ══ SIGNAL DATA ═══════════════════════════════════════════════════════════════
+// blast types: p=prolonged horn, s=short horn, bell=rapid bell, gong=rapid gong, bstr=single bell stroke, any=any sound
+var SIG = {
+  pdw:    { name:'Power-driven Vessel — Making Way',           blasts:['p'],                              interval:'Every ≤ 2 minutes', type:'Power-driven',    ref:'Rule 35(a)',   rule:'Rule 35(a): One prolonged blast at intervals of not more than 2 minutes.',                                                                                                            scene:'ship',   color:'#7c3aed' },
+  pds:    { name:'Power-driven Vessel — Stopped, No Way',      blasts:['p','p'],                          interval:'Every ≤ 2 minutes', type:'Power-driven',    ref:'Rule 35(b)',   rule:'Rule 35(b): Two prolonged blasts in succession with an interval of about 2 seconds between them, at intervals of not more than 2 minutes.',                                           scene:'ship',   color:'#7c3aed', stopped:true },
+  nuc:    { name:'Vessel Not Under Command (NUC)',              blasts:['p','s','s'],                      interval:'Every ≤ 2 minutes', type:'NUC',             ref:'Rule 35(c)',   rule:'Rule 35(c): One prolonged followed by two short blasts, at intervals of not more than 2 minutes. Used instead of signals (a) or (b).',                                               scene:'ship',   color:'#ef4444' },
+  ram:    { name:'Restricted Ability to Manoeuvre (RAM)',       blasts:['p','s','s'],                      interval:'Every ≤ 2 minutes', type:'RAM',             ref:'Rule 35(c)',   rule:'Rule 35(c): One prolonged followed by two short blasts, at intervals of not more than 2 minutes. Used instead of signals (a) or (b).',                                               scene:'ship',   color:'#f97316' },
+  sail:   { name:'Sailing Vessel / Vessel Engaged in Fishing',  blasts:['p','s','s'],                      interval:'Every ≤ 2 minutes', type:'Sailing/Fishing', ref:'Rule 35(c)',   rule:'Rule 35(c): One prolonged followed by two short blasts, at intervals of not more than 2 minutes. Used instead of signals (a) or (b).',                                               scene:'ship',   color:'#10b981' },
+  towing: { name:'Vessel Towing or Pushing Another',            blasts:['p','s','s'],                      interval:'Every ≤ 2 minutes', type:'Towing Vessel',   ref:'Rule 35(c)',   rule:'Rule 35(c): One prolonged followed by two short blasts, at intervals of not more than 2 minutes. Used instead of signals (a) or (b).',                                               scene:'tow',    color:'#7c3aed' },
+  towed:  { name:'Vessel Being Towed (last in tow, if manned)', blasts:['p','s','s','s'],                  interval:'Every ≤ 2 minutes', type:'Towed Vessel',    ref:'Rule 35(e)',   rule:'Rule 35(e): One prolonged followed by three short blasts, at intervals of not more than 2 minutes. When practicable, made immediately after the towing vessel\'s signal.',            scene:'tow',    color:'#38bdf8', isTowed:true },
+  anc:    { name:'Vessel at Anchor',                            blasts:['bell'],                           interval:'Every ≤ 1 minute',  type:'At Anchor',       ref:'Rule 35(g)',   rule:'Rule 35(g): Ring the bell rapidly for about 5 seconds at intervals of not more than 1 minute. May additionally sound short-prolonged-short on whistle to warn approaching vessels.', scene:'anchor', color:'#f59e0b' },
+  ancbig: { name:'Vessel at Anchor (≥ 100 m in length)',        blasts:['bell','gong'],                    interval:'Every ≤ 1 minute',  type:'At Anchor ≥100m', ref:'Rule 35(g)',   rule:'Rule 35(g): Bell rapidly ~5 s in the fore part, then immediately gong rapidly ~5 s in the after part. At intervals of not more than 1 minute.',                                    scene:'anchor', color:'#f59e0b', big:true },
+  agr:    { name:'Vessel Aground',                              blasts:['bstr','bstr','bstr','bell','bstr','bstr','bstr'], interval:'Every ≤ 1 minute', type:'Aground', ref:'Rule 35(h)', rule:'Rule 35(h): Three separate bell strokes, then rapid bell ring (~5 s), then three separate bell strokes again. Plus gong if ≥100 m. May also sound an appropriate whistle signal.', scene:'aground',color:'#ef4444' },
+  small:  { name:'Vessel less than 20 m',                       blasts:['any'],                            interval:'Every ≤ 2 minutes', type:'Small Vessel',    ref:'Rule 35(i/j)', rule:'Rule 35(i)/(j): Not obliged to give bell signals. Must make some other efficient sound signal at intervals of not more than 2 minutes.',                                              scene:'small',  color:'#94a3b8' },
+  pilot:  { name:'Pilot Vessel on Pilotage Duty',               blasts:['p','s','s','s','s'],              interval:'Every ≤ 2 minutes', type:'Pilot Vessel',    ref:'Rule 35(k)',   rule:'Rule 35(k): Normal signal (a), (b) or (g) plus an identity signal of four short blasts. The four short blasts may be added in addition.',                                           scene:'ship',   color:'#38bdf8', isPilot:true },
+};
+
+// ══ AUDIO via Howler.js ═══════════════════════════════════════════════════════
+// All sounds built as base64 WAV, handed to Howler which handles iOS unlocking.
+
+function buildWav(samples, sampleRate) {
+  var numSamples = samples.length;
+  var dataLen = numSamples * 2;
+  var buf = new ArrayBuffer(44 + dataLen);
+  var view = new DataView(buf);
+  function writeStr(off, str) { for (var i=0;i<str.length;i++) view.setUint8(off+i, str.charCodeAt(i)); }
+  writeStr(0,'RIFF'); view.setUint32(4,36+dataLen,true);
+  writeStr(8,'WAVE'); writeStr(12,'fmt ');
+  view.setUint32(16,16,true); view.setUint16(20,1,true); view.setUint16(22,1,true);
+  view.setUint32(24,sampleRate,true); view.setUint32(28,sampleRate*2,true);
+  view.setUint16(32,2,true); view.setUint16(34,16,true);
+  writeStr(36,'data'); view.setUint32(40,dataLen,true);
+  for (var i=0;i<numSamples;i++) {
+    var s=Math.max(-1,Math.min(1,samples[i]));
+    view.setInt16(44+i*2, s<0?s*0x8000:s*0x7FFF, true);
+  }
+  var bytes=new Uint8Array(buf), binary='';
+  for (var i=0;i<bytes.byteLength;i++) binary+=String.fromCharCode(bytes[i]);
+  return 'data:audio/wav;base64,'+btoa(binary);
+}
+
+function makeHorn(freqHz, durationSec) {
+  var sr=22050, n=Math.floor(sr*durationSec);
+  var atk=Math.floor(sr*0.15), rel=Math.floor(sr*0.08);
+  var s=new Float32Array(n);
+  for (var i=0;i<n;i++) {
+    var t=i/sr;
+    var env = i<atk ? i/atk : i>(n-rel) ? (n-i)/rel : 1.0;
+    s[i]=(0.55*Math.sin(2*Math.PI*freqHz*t)+0.25*Math.sin(4*Math.PI*freqHz*t)+0.12*Math.sin(6*Math.PI*freqHz*t)+0.08*Math.sin(8*Math.PI*freqHz*t))*env*0.85;
+  }
+  return buildWav(s, sr);
+}
+
+function makeBell(durationSec) {
+  // Rapid ringing bell — high metallic tone with fast decay, repeated
+  var sr=22050, n=Math.floor(sr*durationSec);
+  var s=new Float32Array(n);
+  var hitInterval=Math.floor(sr*0.22); // ring every 0.22s
+  for (var i=0;i<n;i++) {
+    var t=i/sr;
+    var phase=i%hitInterval;
+    var hitT=phase/sr;
+    var decay=Math.exp(-hitT*14);
+    s[i]=(0.5*Math.sin(2*Math.PI*1200*hitT)+0.3*Math.sin(2*Math.PI*1800*hitT)+0.15*Math.sin(2*Math.PI*2400*hitT))*decay*0.7;
+  }
+  return buildWav(s, sr);
+}
+
+function makeBellStroke() {
+  // Single bell strike
+  var sr=22050, n=Math.floor(sr*0.6);
+  var s=new Float32Array(n);
+  for (var i=0;i<n;i++) {
+    var t=i/sr;
+    var decay=Math.exp(-t*8);
+    s[i]=(0.5*Math.sin(2*Math.PI*1200*t)+0.3*Math.sin(2*Math.PI*1800*t)+0.15*Math.sin(2*Math.PI*2400*t))*decay*0.7;
+  }
+  return buildWav(s, sr);
+}
+
+function makeGong(durationSec) {
+  // Deep gong — low metallic tone with slow decay, repeated
+  var sr=22050, n=Math.floor(sr*durationSec);
+  var s=new Float32Array(n);
+  var hitInterval=Math.floor(sr*0.35);
+  for (var i=0;i<n;i++) {
+    var phase=i%hitInterval;
+    var hitT=phase/sr;
+    var decay=Math.exp(-hitT*5);
+    s[i]=(0.5*Math.sin(2*Math.PI*220*hitT)+0.3*Math.sin(2*Math.PI*310*hitT)+0.15*Math.sin(2*Math.PI*420*hitT))*decay*0.75;
+  }
+  return buildWav(s, sr);
+}
+
+// Pre-build all sounds
+var wavHornShort   = makeHorn(220, 0.5);
+var wavHornProlong = makeHorn(220, 1.8);
+var wavBellRapid   = makeBell(2.0);
+var wavBellStroke  = makeBellStroke();
+var wavGong        = makeGong(2.0);
+var wavAny         = makeHorn(300, 0.6);
+
+function mkHowl(src) {
+  return new Howl({ src:[src], format:['wav'], preload:true, html5:true });
+}
+
+var howls = {
+  p:    mkHowl(wavHornProlong),
+  s:    mkHowl(wavHornShort),
+  bell: mkHowl(wavBellRapid),
+  gong: mkHowl(wavGong),
+  bstr: mkHowl(wavBellStroke),
+  any:  mkHowl(wavAny)
+};
+
+// ══ STATE ═════════════════════════════════════════════════════════════════════
+var cur = null, playing = false, tos = [];
+
+// ══ TABS ══════════════════════════════════════════════════════════════════════
+window.r35tab = function(name, btn) {
+  document.querySelectorAll('.r35-tab').forEach(function(b){ b.classList.remove('active'); });
+  btn.classList.add('active');
+  document.querySelectorAll('.r35-panel').forEach(function(p){ p.classList.remove('active'); });
+  document.getElementById('r35p-'+name).classList.add('active');
+  if (name === 'quiz') r35initQ();
+};
+
+// ══ SELECT ════════════════════════════════════════════════════════════════════
+window.r35sel = function(key, btn) {
+  if (playing) return;
+  cur = key;
+  document.querySelectorAll('.r35-sbtn').forEach(function(b){ b.classList.remove('active'); });
+  btn.classList.add('active');
+  var s = SIG[key];
+
+  var te = document.getElementById('r35title');
+  te.textContent = s.name; te.classList.remove('empty');
+
+  var be = document.getElementById('r35blasts'); be.innerHTML = '';
+  s.blasts.forEach(function(t, i) {
+    var d = document.createElement('div');
+    d.id = 'r35b'+i;
+    if      (t==='p')    { d.className='r35-bp p';    d.textContent='———'; }
+    else if (t==='s')    { d.className='r35-bp s';    d.textContent='•'; }
+    else if (t==='bell') { d.className='r35-bp bell'; d.textContent='🔔'; }
+    else if (t==='gong') { d.className='r35-bp gong'; d.textContent='🔕'; }
+    else if (t==='bstr') { d.className='r35-bp bstr'; d.textContent='🔔'; d.style.width='36px'; }
+    else if (t==='any')  { d.className='r35-bp any';  d.textContent='?'; }
+    be.appendChild(d);
+  });
+
+  var ir = document.getElementById('r35intervalrow');
+  ir.style.display='block';
+  document.getElementById('r35interval').innerHTML='⏱ Signal interval: <strong>'+s.interval+'</strong>';
+
+  var re = document.getElementById('r35rule');
+  re.textContent = s.rule; re.classList.remove('empty');
+
+  document.getElementById('r35ft').textContent = s.type;
+  document.getElementById('r35fw').textContent = s.interval;
+  document.getElementById('r35fr').textContent = s.ref;
+
+  buildScene(s);
+
+  document.getElementById('r35pbtn').disabled = false;
+  document.getElementById('r35pstat').textContent = 'Ready';
+};
+
+function buildScene(s) {
+  var sc = document.getElementById('r35scene');
+  sc.innerHTML = '<div class="r35-fog"></div>'+
+    '<div class="r35-vis-badge">🌫 Restricted Visibility</div>';
+
+  if (s.scene === 'ship') {
+    var w = document.createElement('div');
+    w.className='r35-sw';
+    var extra = s.stopped ? '<text x="27" y="50" text-anchor="middle" fill="#a78bfa" font-size="8" font-family="Arial">STOPPED</text>' : '';
+    w.innerHTML = mkship(s.color,'r35ms',extra)+
+      '<div class="r35-slabel" style="color:'+s.color+'80">'+s.type+'</div>'+
+      mkRings('whistle');
+    sc.appendChild(w);
+
+  } else if (s.scene === 'tow') {
+    var row = document.createElement('div');
+    row.className='r35-fleet';
+    if (!s.isTowed) {
+      row.innerHTML =
+        '<div class="r35-sw">'+mkship(s.color,'r35ms')+'<div class="r35-slabel">Towing Vessel</div>'+mkRings('whistle')+'</div>'+
+        '<div style="font-size:1.4rem;color:#3a5070;z-index:1;">~~~~~</div>'+
+        '<div class="r35-sw">'+mkship('#3a5070')+'<div class="r35-slabel">Towed</div></div>';
+    } else {
+      row.innerHTML =
+        '<div class="r35-sw">'+mkship('#3a5070')+'<div class="r35-slabel">Towing</div></div>'+
+        '<div style="font-size:1.4rem;color:#3a5070;z-index:1;">~~~~~</div>'+
+        '<div class="r35-sw">'+mkship(s.color,'r35ms')+'<div class="r35-slabel" style="color:'+s.color+'80">Last in Tow</div>'+mkRings('whistle')+'</div>';
+    }
+    sc.appendChild(row);
+
+  } else if (s.scene === 'anchor') {
+    var aw = document.createElement('div');
+    aw.className='r35-sw';
+    if (s.big) {
+      aw.innerHTML = mkship(s.color,'r35ms')+
+        '<div class="r35-slabel">≥ 100 m</div>'+
+        '<div style="font-size:.65rem;color:#f59e0b80;letter-spacing:1px;text-transform:uppercase;margin-top:2px;">Bell (fwd) + Gong (aft)</div>'+
+        mkRings('bell');
+    } else {
+      aw.innerHTML = mkship(s.color,'r35ms')+'<div class="r35-slabel">At Anchor</div>'+mkRings('bell');
+    }
+    sc.appendChild(aw);
+    var anc = document.createElement('div');
+    anc.className='r35-anchor'; anc.textContent='⚓';
+    sc.appendChild(anc);
+
+  } else if (s.scene === 'aground') {
+    var gw = document.createElement('div');
+    gw.className='r35-sw';
+    gw.innerHTML = mkship(s.color,'r35ms')+
+      '<div class="r35-slabel" style="color:#ef444480">Aground</div>'+
+      mkRings('bell');
+    sc.appendChild(gw);
+    var gl = document.createElement('div'); gl.className='r35-aground-line'; sc.appendChild(gl);
+
+  } else if (s.scene === 'small') {
+    var sw2 = document.createElement('div'); sw2.className='r35-sw';
+    sw2.innerHTML = mkshipSmall(s.color)+'<div class="r35-slabel">Small Vessel</div>';
+    sc.appendChild(sw2);
+    var note = document.createElement('div');
+    note.style.cssText='position:relative;z-index:1;font-size:.72rem;color:#4a6080;text-align:center;max-width:200px;line-height:1.5;margin-left:16px;';
+    note.textContent='Any efficient sound signal at intervals of not more than 2 minutes';
+    sc.appendChild(note);
+  }
+}
+
+// ══ PLAY ══════════════════════════════════════════════════════════════════════
+window.r35play = function() {
+  if (!cur || playing) return;
+  playing=true; tos.forEach(clearTimeout); tos=[];
+
+  var s = SIG[cur];
+  var pbtn=document.getElementById('r35pbtn'), pst=document.getElementById('r35pstat');
+  pbtn.disabled=true; pbtn.textContent='⏸ Playing...'; pbtn.classList.add('playing');
+  pst.textContent='Transmitting...';
+
+  document.querySelectorAll('.r35-bp').forEach(function(p){ p.classList.remove('on'); });
+
+  // Duration in ms for each blast type
+  var DMS = { p:1800, s:500, bell:2000, gong:2000, bstr:500, any:700 };
+  var GMS = { p:400,  s:350, bell:400,  gong:400,  bstr:300, any:400 };
+
+  var tms = 0;
+
+  // Special: pds has a 2s gap between the two prolonged blasts
+  s.blasts.forEach(function(t, i) {
+    var dms = DMS[t]||500;
+    var gms = (cur==='pds' && i===0) ? 2000 : (GMS[t]||350);
+
+    (function(idx, start, end, btype){
+      var t1 = setTimeout(function(){
+        // Play via Howler
+        if (howls[btype]) howls[btype].play();
+        var p=document.getElementById('r35b'+idx); if(p) p.classList.add('on');
+      }, start);
+      var t2 = setTimeout(function(){
+        var p=document.getElementById('r35b'+idx); if(p) p.classList.remove('on');
+      }, end);
+      tos.push(t1,t2);
+    })(i, tms, tms+dms, t);
+
+    tms += dms + gms;
+  });
+
+  var done = setTimeout(function(){
+    playing=false;
+    pbtn.disabled=false; pbtn.textContent='▶ Play Signal'; pbtn.classList.remove('playing');
+    pst.textContent='✓ Complete';
+    setTimeout(function(){ pst.textContent='Ready'; }, 1800);
+  }, tms+200);
+  tos.push(done);
+};
+
+// ══ QUIZ ══════════════════════════════════════════════════════════════════════
+var QS = [
+  {q:'A power-driven vessel making way through water in restricted visibility shall sound:',                             o:['Two prolonged blasts','One prolonged blast','One prolonged + two short blasts','Four short blasts'],                    a:1, r:'Rule 35(a)'},
+  {q:'A power-driven vessel underway but stopped and making no way shall sound:',                                        o:['One prolonged blast','Three short blasts','Two prolonged blasts in succession','One prolonged + two short blasts'],   a:2, r:'Rule 35(b)'},
+  {q:'What is the fog signal for a vessel Not Under Command (NUC)?',                                                     o:['One prolonged blast','Two prolonged blasts','One prolonged + two short blasts','One prolonged + three short blasts'], a:2, r:'Rule 35(c)'},
+  {q:'A sailing vessel in restricted visibility shall sound:',                                                           o:['One prolonged blast every 2 min','Two short blasts every 2 min','One prolonged + two short blasts','Two prolonged blasts'], a:2, r:'Rule 35(c)'},
+  {q:'What signal does the last manned vessel in a tow sound in restricted visibility?',                                 o:['One prolonged blast','One prolonged + two short blasts','One prolonged + three short blasts','Four short blasts'],    a:2, r:'Rule 35(e)'},
+  {q:'A vessel at anchor in restricted visibility shall ring the bell rapidly for about 5 seconds at intervals of not more than:', o:['30 seconds','1 minute','2 minutes','5 minutes'],                                                          a:1, r:'Rule 35(g)'},
+  {q:'For a vessel at anchor of 100 m or more in length, after the bell is rung in the fore part:',                     o:['The whistle is sounded','The gong is sounded rapidly in the after part','The bell is rung again in the after part','No additional signal is required'], a:1, r:'Rule 35(g)'},
+  {q:'A vessel aground shall sound (in addition to the bell signal):',                                                   o:['Three separate bell strokes before and after the rapid ringing','Five short blasts','One prolonged + two short blasts','Two prolonged blasts'], a:0, r:'Rule 35(h)'},
+  {q:'A vessel between 12 m and 20 m in length is not obliged to give bell signals but must:',                          o:['Sound no signal','Give five short blasts','Make some other efficient sound signal at intervals of not more than 2 minutes','Use an all-round white light instead'], a:2, r:'Rule 35(i)'},
+  {q:'How often must the fog signal for a power-driven vessel making way be given?',                                     o:['Every 30 seconds','At intervals of not more than 2 minutes','At intervals of not more than 1 minute','Every 5 minutes'], a:1, r:'Rule 35(a)'},
+  {q:'A pilot vessel on pilotage duty may add to its normal fog signal:',                                                o:['Two prolonged blasts','One prolonged + two short blasts','Four short blasts as an identity signal','Five rapid flashes'], a:2, r:'Rule 35(k)'},
+  {q:'A pushing vessel and a vessel being pushed ahead, rigidly connected as a composite unit, shall in restricted visibility use the signals of:', o:['A vessel towing','A vessel not under command','A power-driven vessel','A vessel at anchor'], a:2, r:'Rule 35(f)'}
+];
+var qst=[];
+
+window.r35initQ = function() {
+  qst = QS.map(function(){ return null; });
+  renderQ();
+};
+
+function renderQ() {
+  var c=qst.filter(function(s){return s===true;}).length;
+  var a=qst.filter(function(s){return s!==null;}).length;
+  document.getElementById('r35qs').textContent='Score: '+c+' correct / '+a+' answered / '+QS.length+' total';
+  var con=document.getElementById('r35qc'); con.innerHTML='';
+  QS.forEach(function(q,qi){
+    var box=document.createElement('div'); box.className='r35-qbox';
+    var qt=document.createElement('div'); qt.className='r35-qtext'; qt.textContent=(qi+1)+'. '+q.q; box.appendChild(qt);
+    var opts=document.createElement('div'); opts.className='r35-qopts';
+    var fb=document.createElement('div'); fb.className='r35-qfb';
+    if (qst[qi]!==null) {
+      fb.textContent=qst[qi]?'✓ Correct! ('+q.r+')':'✗ Incorrect — correct answer: '+q.o[q.a]+' ('+q.r+')';
+      fb.style.color=qst[qi]?'#10b981':'#ef4444';
+    }
+    q.o.forEach(function(opt,oi){
+      var b=document.createElement('button'); b.className='r35-qopt'; b.textContent=opt;
+      if (qst[qi]!==null) {
+        b.disabled=true;
+        if (oi===q.a) b.classList.add('correct');
+        else if (qst[qi]===false && oi===oi){}
+      }
+      b.onclick=function(){
+        if (qst[qi]!==null) return;
+        var ok=(oi===q.a); qst[qi]=ok;
+        opts.querySelectorAll('.r35-qopt').forEach(function(ob,obi){
+          ob.disabled=true;
+          if (obi===q.a) ob.classList.add('correct');
+          else if (obi===oi && !ok) ob.classList.add('wrong');
+        });
+        fb.textContent=ok?'✓ Correct! ('+q.r+')':'✗ Incorrect — correct answer: '+q.o[q.a]+' ('+q.r+')';
+        fb.style.color=ok?'#10b981':'#ef4444';
+        var c2=qst.filter(function(s){return s===true;}).length;
+        var a2=qst.filter(function(s){return s!==null;}).length;
+        document.getElementById('r35qs').textContent='Score: '+c2+' correct / '+a2+' answered / '+QS.length+' total';
+      };
+      opts.appendChild(b);
+    });
+    box.appendChild(opts); box.appendChild(fb); con.appendChild(box);
+  });
+}
+
+r35initQ();
+})();
+</script>
