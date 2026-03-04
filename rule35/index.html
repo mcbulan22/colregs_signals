@@ -644,8 +644,8 @@ function makeGong(durationSec) {
 }
 
 // Pre-build all sounds
-var wavHornShort   = makeHorn(220, 0.5);
-var wavHornProlong = makeHorn(220, 1.8);
+var wavHornShort   = makeHorn(220, 1.0);
+var wavHornProlong = makeHorn(220, 5.0);
 var wavBellRapid   = makeBell(2.0);
 var wavBellStroke  = makeBellStroke();
 var wavGong        = makeGong(2.0);
@@ -796,8 +796,8 @@ window.r35play = function() {
   document.querySelectorAll('.r35-bp').forEach(function(p){ p.classList.remove('on'); });
 
   // Duration in ms for each blast type
-  var DMS = { p:1800, s:500, bell:2000, gong:2000, bstr:500, any:700 };
-  var GMS = { p:400,  s:350, bell:400,  gong:400,  bstr:300, any:400 };
+  var DMS = { p:5000, s:1000, bell:2000, gong:2000, bstr:500, any:1000 };
+  var GMS = { p:500,  s:400,  bell:400,  gong:400,  bstr:300, any:400  };
 
   var tms = 0;
 
